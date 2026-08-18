@@ -3,6 +3,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
+import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -61,6 +62,14 @@ export const signup = asyncHandler(async (req, res) => {
         secure: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
         sameSite: "strict" // CSRF attacks
+    }
+
+    try {
+        const clientURL = process.env.CLIENT_URL; 
+        await sendWelcomeEmail(createdUser.email, createdUser.fullName, clientURL);
+    } catch (emailError) {
+        // Optional: Log the error but don't crash signup if email failing shouldn't stop registration
+        console.error("Signup succeeded but welcome email failed: ", emailError.message);
     }
 
     return res
