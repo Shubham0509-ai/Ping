@@ -167,7 +167,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
             const uploadIndex = urlParts.indexOf("upload");
             const publicIdWithExtension = urlParts.slice(uploadIndex + 2).join("/"); // Skips 'upload' and version tag (v123456)
             const publicId = publicIdWithExtension.split(".")[0];
-            
+
             await cloudinary.uploader.destroy(publicId);
         } catch (error) {
             throw new ApiError(400, "Something went wrong while destroying publicId from cloudinary");
@@ -188,8 +188,8 @@ export const updateProfile = asyncHandler(async (req, res) => {
             }
         },
         {
-            new: true
-        }
+            returnDocument: "after"
+        } 
     ).select("-password -refreshToken");
 
     return res
