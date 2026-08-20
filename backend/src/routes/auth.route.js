@@ -12,4 +12,8 @@ router.post("/login", login);
 router.post("/logout", verifyJWT, logout);
 router.put("/update-profile", verifyJWT, upload.single("profilePic"), updateProfile);
 
+router.get("/check", verifyJWT, (req, res) => {
+    res.status(200).json(req.user);
+});
+
 export default router;
