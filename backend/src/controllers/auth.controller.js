@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
 import { sendWelcomeEmail } from "../emails/emailHandlers.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -143,5 +144,61 @@ export const logout = asyncHandler(async (req, res) => {
     .clearCookie("refreshToken", options)
     .json(
         new ApiResponse(200, {}, "User logged out successfully!")
+    )
+});
+
+export const updateProfile = asyncHandler(async (req, res) => {
+    const profilePicLocalPath = req.file?.path;
+
+    if (!profilePicLocalPath) {
+        throw new ApiError(400, "Profile picture file is required");
+    }
+
+    const currentUser = await User.findById(req.user?._id);
+
+    if (!currentUser) {
+        throw new ApiError(400, "User not found");
+    }
+
+    // Delete old image
+    if (currentUser?.profilePic) {
+        try {
+            const urlParts = currentUser.profilePic.split("/");
+            const uploadIndex = urlParts.indexOf("upload");
+            const publicIdWithExtension = urlParts.slice(uploadIndex + 2).join("/"); // Skips 'upload' and version tag (v123456)
+            const publicId = publicIdWithExtension.split(".")[0];
+            
+            await cloudinary.uploader.destroy(publicId);
+        } catch (error) {
+            throw new ApiError(400, "Something went wrong while destroying publicId from cloudinary");
+        }
+    }
+
+    const profilePic = await uploadOnCloudinary(profilePicLocalPath);
+
+    if (!profilePic.url) {
+        throw new ApiError(400, "Error while uploading profile pic to cloudinary!");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                profilePic: profilePic.url
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password -refreshToken");
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user,
+            "Profile pic updated successfully!"
+        )
     )
 });
