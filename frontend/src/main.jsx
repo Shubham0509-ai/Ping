@@ -6,6 +6,7 @@ import ChatPage from './pages/ChatPage.jsx'
 import App from './App.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import SignupPage from './pages/SignupPage.jsx'
+import AuthLayout from './pages/AuthLayout.jsx'
 
 const router = createBrowserRouter([
   {
@@ -14,15 +15,27 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <ChatPage />
+        element: (
+          <AuthLayout authentication={true}> 
+            <ChatPage />
+          </AuthLayout>
+        )
       },
       {
         path: "/login",
-        element: <LoginPage />
+        element: (
+          <AuthLayout authentication={false}> 
+            <LoginPage />
+          </AuthLayout>
+        )
       },
       {
         path: "/signup",
-        element: <SignupPage />
+        element: (
+          <AuthLayout authentication={false}>
+            <SignupPage />
+          </AuthLayout>
+        )
       }
     ]
   }

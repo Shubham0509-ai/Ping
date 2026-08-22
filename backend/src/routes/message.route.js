@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { arcjetProtection } from "../lib/arcjet.js";
+import { arcjetProtection } from "../middlewares/arcjet.middleware.js";
 import { getAllContacts, getChatPartners, getMessagesByUserId, sendMessage } from "../controllers/message.controller.js";
 
 const router = Router();
