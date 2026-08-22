@@ -95,5 +95,55 @@ export const sendMessage = asyncHandler(async (req, res) => {
 });
 
 export const getChatPartners = asyncHandler(async (req, res) => {
-    
+    const loggedInUserId = req.user?._id;
+
+    if (!loggedInUserId) {
+      throw new ApiError(400, "Authentication failed!");
+    }
+
+    const loggedInUserObjectId = new mongoose.Types.ObjectId(loggedInUserId);
+
+    // Find unique partner IDs directly in the database
+    const aggregateResult = await Messages.aggregate([
+    {
+        $match: {
+            $or: [
+                { senderId: loggedInUserObjectId },
+                { receiverId: loggedInUserObjectId }
+            ]
+        }
+    },
+    {
+        $project: {
+            partnerId: {
+                $cond: {
+                    if: { 
+                        $eq: ["$senderId", loggedInUserObjectId] 
+                    },
+                    then: "$receiverId",
+                    else: "$senderId"
+                }
+            }
+        }
+    },
+    {
+        $group: {
+            _id: null,
+            uniquePartners: { $addToSet: "$partnerId" }
+        }
+    }
+    ]);
+
+    const chatPartnersIds = aggregateResult.length > 0 ? aggregateResult[0].uniquePartners : [];
+
+    // Fetch partner user details
+    const chatPartners = await User.find({ 
+        _id: { $in: chatPartnersIds } 
+    }).select("-password -refreshToken");
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, chatPartners, "Chat partners fetched successfully!")
+    );
 });

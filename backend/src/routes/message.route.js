@@ -6,6 +6,8 @@ import { getAllContacts, getChatPartners, getMessagesByUserId, sendMessage } fro
 const router = Router();
 
 // All are secured routes
+// The middlewares execute in order - so requests get rate-limited first, then authenticated.
+// This is actually more efficient since unauthenticated requests get blocked by rate limiting before hitting the auth middleware.
 router.use(arcjetProtection, verifyJWT);
 
 router.get("/contacts", getAllContacts);
