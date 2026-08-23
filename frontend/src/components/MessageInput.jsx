@@ -8,6 +8,7 @@ function MessageInput() {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null); // ADDED: To store raw file for Multer
 
   const fileInputRef = useRef(null);
 
@@ -20,19 +21,25 @@ function MessageInput() {
 
     sendMessage({
       text: text.trim(),
-      image: imagePreview,
+      image: imageFile,
     });
+
     setText("");
-    setImagePreview("");
+    setImagePreview(null);
+    setImageFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    if (!file) return; // Guard clause if selection is cancelled
+
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
       return;
     }
+
+    setImageFile(file); // ADDED: Save raw binary file for Axios
 
     const reader = new FileReader();
     reader.onloadend = () => setImagePreview(reader.result);
