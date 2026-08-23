@@ -12,19 +12,22 @@ function ProfileHeader() {
 
   const fileInputRef = useRef(null);
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
+    // Show a quick local preview in UI
+    const localPreview = URL.createObjectURL(file);
+    setSelectedImg(localPreview);
 
-    reader.onloadend = async () => {
-      const base64Image = reader.result;
-      setSelectedImg(base64Image);
-      await updateProfile({ profilePic: base64Image });
-    };
+    // Create Form Data to match Multer expectation
+    const formData = new FormData();
+    formData.append("profilePic", file); // Ensure this key matches your Multer field name!
+
+    // Send formData instead of a Base64 string
+    await updateProfile(formData);
   };
+
 
   return (
     <div className="p-6 border-b border-slate-700/50">
@@ -37,7 +40,7 @@ function ProfileHeader() {
               onClick={() => fileInputRef.current.click()}
             >
               <img
-                src={selectedImg || authUser.profilePic || "/avatar.png"}
+                src={selectedImg || authUser?.profilePic || "/avatar.png"}
                 alt="User image"
                 className="size-full object-cover"
               />
@@ -58,7 +61,7 @@ function ProfileHeader() {
           {/* USERNAME & ONLINE TEXT */}
           <div>
             <h3 className="text-slate-200 font-medium text-base max-w-45 truncate">
-              {authUser.fullName}
+              {authUser?.fullName}
             </h3>
 
             <p className="text-slate-400 text-xs">Online</p>

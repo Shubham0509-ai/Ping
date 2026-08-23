@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -104,7 +105,7 @@ export const getChatPartners = asyncHandler(async (req, res) => {
     const loggedInUserObjectId = new mongoose.Types.ObjectId(loggedInUserId);
 
     // Find unique partner IDs directly in the database
-    const aggregateResult = await Messages.aggregate([
+    const aggregateResult = await Message.aggregate([
     {
         $match: {
             $or: [
