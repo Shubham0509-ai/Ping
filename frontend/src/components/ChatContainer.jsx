@@ -19,6 +19,8 @@ function ChatContainer() {
   const messageEndRef = useRef(null);
 
   useEffect(() => {
+    if (!selectedUser?._id) return;
+
     getMessagesByUserId(selectedUser._id);
     subscribeToMessages();
 
@@ -31,6 +33,15 @@ function ChatContainer() {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  // Early Guard Clause: Prevents reading fullName from null when closing chat
+  if (!selectedUser) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-slate-900/50 text-slate-400">
+        <p>Select a contact or conversation to start chatting</p>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -6,7 +6,7 @@ import { useAuthStore } from "../store/useAuthStore";
 function ChatHeader() {
   const { selectedUser, setSelectedUser } = useChatStore();
   const { onlineUsers } = useAuthStore();
-  const isOnline = onlineUsers.includes(selectedUser._id);
+  const isOnline = onlineUsers?.includes(selectedUser?._id) || false;
 
   useEffect(() => {
     const handleEscKey = (event) => {
@@ -18,6 +18,8 @@ function ChatHeader() {
     // cleanup function
     return () => window.removeEventListener("keydown", handleEscKey);
   }, [setSelectedUser]);
+
+  if (!selectedUser) return null;
 
   return (
     <div
