@@ -2,6 +2,7 @@ import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { arcjetProtection } from "../middlewares/arcjet.middleware.js";
 import { getAllContacts, getChatPartners, getMessagesByUserId, sendMessage } from "../controllers/message.controller.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 
@@ -13,9 +14,9 @@ router.use(arcjetProtection, verifyJWT);
 router.get("/contacts", getAllContacts);
 router.get("/chats", getChatPartners);
 router.get("/:id", getMessagesByUserId);
-router.post("/send/:id", sendMessage);
+router.post("/send/:id", upload.single("image"), sendMessage);
 
-router.get("/send", (req, res) => {
+router.get("/send", (_, res) => {
     res.send("Send message endpoint");
 })
 

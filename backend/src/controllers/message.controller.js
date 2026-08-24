@@ -5,6 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { getReceiverSocketId, io } from "../lib/socket.js";
 
 export const getAllContacts = asyncHandler(async (req, res) => {
     const loggedInUserId = req.user?._id;
@@ -87,6 +88,12 @@ export const sendMessage = asyncHandler(async (req, res) => {
         text: text || "",
         image: image?.url || "",
     });
+
+    const receiverSocketId = getReceiverSocketId(receiverId);
+
+    if (receiverSocketId) {
+        io.to(receiverSocketId).emit("message", message);
+    }
 
     return res
     .status(200)

@@ -26,13 +26,15 @@ function ChatContainer() {
 
     // clean up
     return () => unsubscribeFromMessages();
-  }, [selectedUser, getMessagesByUserId, subscribeToMessages, unsubscribeFromMessages]);
+  }, [selectedUser?._id, getMessagesByUserId, subscribeToMessages, unsubscribeFromMessages]);
 
   useEffect(() => {
     if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  if (!authUser) return null;
 
   // Early Guard Clause: Prevents reading fullName from null when closing chat
   if (!selectedUser) {

@@ -70,15 +70,22 @@ export const useChatStore = create((set, get) => ({
 
         const tempId = `temp-${Date.now()}`;
 
+         // Safely extract values based on whether payload is FormData or raw object
+        const isForm = data instanceof FormData;
+        const textValue = isForm ? data.get("text") : data.text;
+        const imageValue = isForm ? data.get("image") : data.image;
+
         const optimisticMessage = {
             _id: tempId,
             senderId: authUser._id,
             receiverId: selectedUser._id,
-            text: messageData.text,
-            image: messageData.image,
+            text: textValue || "",
+            // If it's a file, turn it into a blob URL for previewing, otherwise use directly
+            image: imageValue instanceof File ? URL.createObjectURL(imageValue) : (imageValue || null),
             createdAt: new Date().toISOString(),
-            isOptimistic: true, // Flag to identify optimistic messages (optional)
+            isOptimistic: true,
         };
+
         // Immediately update the UI by adding the message
         set({ messages: [...messages, optimisticMessage] });
         
@@ -95,19 +102,24 @@ export const useChatStore = create((set, get) => ({
     },
 
     subscribeToMessages: () => {
-        const { selectedUser, isSoundEnabled } = get();
+        const { selectedUser } = get();
         if (!selectedUser) return;
 
         const socket = useAuthStore.getState().socket;
 
+        if (!socket) return;
+
+        // Clean up any existing listeners first to avoid double triggers
+        socket.off("newMessage");
+
         socket.on("newMessage", (newMessage) => {
-        const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
+        const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser?._id;
         if (!isMessageSentFromSelectedUser) return;
 
         const currentMessages = get().messages;
         set({ messages: [...currentMessages, newMessage] });
 
-        if (isSoundEnabled) {
+        if (get().isSoundEnabled) {
             const notificationSound = new Audio("/sounds/notification.mp3");
 
             notificationSound.currentTime = 0; // reset to start
@@ -118,6 +130,9 @@ export const useChatStore = create((set, get) => ({
 
     unsubscribeFromMessages: () => {
         const socket = useAuthStore.getState().socket;
-        socket.off("newMessage");
+        
+        if (socket) {
+            socket.off("newMessage");
+        }
     },
 }));
