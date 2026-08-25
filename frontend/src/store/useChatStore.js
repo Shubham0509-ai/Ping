@@ -61,10 +61,14 @@ export const useChatStore = create((set, get) => ({
     },
 
     sendMessage: async (data) => {
-        const { selectedUser } = get()
+        const { selectedUser } = get();
         if (!selectedUser?._id) return toast.error("No user selected");
 
-        const { authUser } = useAuthStore.getState()
+        const { authUser } = useAuthStore.getState();
+        if (selectedUser._id === authUser?._id) {
+            return toast.error("You cannot send messages to yourself");
+        }
+
         const tempId = `temp-${Date.now()}`;
 
         // Safely extract values based on whether payload is FormData or raw object

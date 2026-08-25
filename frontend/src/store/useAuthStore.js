@@ -67,7 +67,7 @@ export const useAuthStore = create((set, get) => ({
             toast.success("Logged out successfully!")
             get().disconnectSocket()
         } catch (error) {
-            toast.error("Error logging out!")
+            toast.error(error.response?.data?.message || "Error logging out!")
         }
     },
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import BorderAnimatedContainer from "../components/BorderAnimatedContainer";
-import { MessageCircleIcon, MailIcon, LoaderIcon, LockIcon } from "lucide-react";
+import { MessageCircleIcon, MailIcon, LoaderIcon, LockIcon, SparklesIcon, ShieldCheckIcon, ZapIcon } from "lucide-react";
 import { Link } from "react-router";
 
 function LoginPage() {
@@ -14,34 +14,37 @@ function LoginPage() {
   };
 
   return (
-    <div className="w-full flex items-center justify-center p-4 bg-emerald-950/40">
-      <div className="relative w-full max-w-6xl md:h-200 h-162.5">
+    <div className="w-full flex items-center justify-center p-2 sm:p-4">
+      <div className="relative w-full max-w-5xl min-h-[580px] lg:h-[620px]">
         <BorderAnimatedContainer>
-          <div className="w-full flex flex-col md:flex-row">
+          <div className="w-full h-full flex flex-col md:flex-row">
             {/* FORM COLUMN - LEFT SIDE */}
-            <div className="md:w-1/2 p-8 flex items-center justify-center md:border-r border-emerald-800/20">
-              <div className="w-full max-w-md">
+            <div className="w-full md:w-1/2 p-6 sm:p-10 flex items-center justify-center md:border-r border-slate-800/80 bg-slate-950/40">
+              <div className="w-full max-w-sm">
                 {/* HEADING TEXT */}
                 <div className="text-center mb-8">
-                  <MessageCircleIcon className="w-12 h-12 mx-auto text-emerald-400 mb-4" />
-                  <h2 className="text-2xl font-bold text-emerald-100 mb-2">Welcome Back</h2>
-                  <p className="text-emerald-400/80">Login to access to your account</p>
+                  <div className="inline-flex p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 mb-4 shadow-lg shadow-cyan-500/10">
+                    <MessageCircleIcon className="w-8 h-8" />
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">Welcome Back</h2>
+                  <p className="text-slate-400 text-sm">Sign in to continue to your conversations</p>
                 </div>
 
                 {/* FORM */}
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-5">
                   {/* EMAIL INPUT */}
                   <div>
-                    <label className="auth-input-label">Email</label>
+                    <label className="auth-input-label">Email Address</label>
                     <div className="relative">
                       <MailIcon className="auth-input-icon" />
 
                       <input
                         type="email"
+                        required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="input"
-                        placeholder="johndoe@gmail.com"
+                        placeholder="you@example.com"
                       />
                     </div>
                   </div>
@@ -54,53 +57,67 @@ function LoginPage() {
 
                       <input
                         type="password"
+                        required
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         className="input"
-                        placeholder="Enter your password"
+                        placeholder="••••••••"
                       />
                     </div>
                   </div>
 
                   {/* SUBMIT BUTTON */}
                   <button 
-                    className="w-full py-3 px-4 font-semibold text-emerald-950 rounded-xl bg-linear-to-r from-emerald-400 to-mint-300 hover:from-emerald-500 hover:to-mint-400 active:scale-[0.98] transition-all duration-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-emerald-950/20" 
+                    className="w-full py-3.5 px-4 font-semibold text-slate-950 rounded-xl bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-300 hover:from-cyan-300 hover:to-teal-200 active:scale-[0.98] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/25 cursor-pointer mt-2" 
                     type="submit" 
                     disabled={isLoggingIn}
                   >
                     {isLoggingIn ? (
-                      <LoaderIcon className="w-full h-5 animate-spin text-center text-emerald-950" />
+                      <span className="flex items-center justify-center gap-2">
+                        <LoaderIcon className="w-5 h-5 animate-spin" />
+                        Signing in...
+                      </span>
                     ) : (
                       "Sign In"
                     )}
                   </button>
-
                 </form>
 
-                <div className="mt-6 text-center">
-                  <Link to="/signup" className="auth-link">
-                    Don't have an account? Sign Up
+                <div className="mt-8 text-center text-sm text-slate-400">
+                  Don't have an account?{" "}
+                  <Link to="/signup" className="auth-link font-semibold">
+                    Create account
                   </Link>
                 </div>
               </div>
             </div>
 
             {/* FORM ILLUSTRATION - RIGHT SIDE */}
-            <div className="hidden md:w-1/2 md:flex items-center justify-center p-6 bg-linear-to-bl from-emerald-900/10 to-transparent">
-              <div>
-                <img
-                  src="/login.png"
-                  alt="People using mobile devices"
-                  className="w-full h-auto object-contain"
-                />
-                <div className="mt-6 text-center">
-                  <h3 className="text-xl font-medium text-mint-400">Connect anytime, anywhere</h3>
+            <div className="hidden md:w-1/2 md:flex flex-col items-center justify-center p-10 bg-gradient-to-br from-cyan-950/20 via-slate-900/30 to-indigo-950/20 relative overflow-hidden">
+              {/* Background ambient lighting */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-72 bg-cyan-500/10 rounded-full blur-[90px] pointer-events-none" />
 
-                  <div className="mt-4 flex justify-center gap-4">
-                    <span className="auth-badge">Free</span>
-                    <span className="auth-badge">Easy Setup</span>
-                    <span className="auth-badge">Private</span>
-                  </div>
+              <div className="relative z-10 text-center max-w-xs">
+                <div className="animate-float mb-6">
+                  <img
+                    src="/login.png"
+                    alt="Ping messaging preview"
+                    className="w-full max-w-[260px] mx-auto h-auto object-contain drop-shadow-2xl"
+                  />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">Connect instantly with Ping</h3>
+                <p className="text-slate-400 text-xs leading-relaxed mb-6">Experience lightning-fast real-time messaging with your friends and teammates.</p>
+
+                <div className="flex flex-wrap justify-center gap-2">
+                  <span className="auth-badge">
+                    <ZapIcon className="size-3" /> Realtime
+                  </span>
+                  <span className="auth-badge">
+                    <ShieldCheckIcon className="size-3" /> Encrypted
+                  </span>
+                  <span className="auth-badge">
+                    <SparklesIcon className="size-3" /> Free
+                  </span>
                 </div>
               </div>
             </div>
@@ -110,4 +127,5 @@ function LoginPage() {
     </div>
   );
 }
+
 export default LoginPage;

@@ -1,41 +1,50 @@
-import { MessageCircleIcon } from "lucide-react";
+import { MessageSquarePlusIcon, HandMetalIcon, SmileIcon, CalendarIcon } from "lucide-react";
 import { useChatStore } from "../store/useChatStore";
 
 const NoChatHistoryPlaceholder = ({ name }) => {
   const { sendMessage } = useChatStore();
 
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center p-6">
-      <div className="w-16 h-16 bg-linear-to-br from-cyan-500/20 to-cyan-400/10 rounded-full flex items-center justify-center mb-5">
-        <MessageCircleIcon className="size-8 text-cyan-400" />
+    <div className="flex flex-col items-center justify-center h-full text-center p-6 sm:p-10 relative">
+      <div className="size-16 rounded-2xl bg-gradient-to-tr from-cyan-500/20 via-slate-800 to-teal-500/20 border border-cyan-500/30 flex items-center justify-center mb-5 shadow-lg shadow-cyan-950/30 animate-float">
+        <MessageSquarePlusIcon className="size-8 text-cyan-400" />
       </div>
-      <h3 className="text-lg font-medium text-slate-200 mb-3">
-        Start your conversation with {name}
+
+      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 tracking-tight">
+        Say Hello to {name}!
       </h3>
-      <div className="flex flex-col space-y-3 max-w-md mb-5">
-        <p className="text-slate-400 text-sm">
-          This is the beginning of your conversation. Send a message to start chatting!
+
+      <div className="flex flex-col space-y-3 max-w-sm mb-6">
+        <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+          This is the beginning of your direct conversation. Break the ice with a quick greeting:
         </p>
-        <div className="h-px w-32 bg-linear-to-r from-transparent via-cyan-500/30 to-transparent mx-auto"></div>
+        <div className="h-px w-24 bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent mx-auto" />
       </div>
-      <div className="flex flex-wrap gap-2 justify-center">
+
+      {/* Suggestion Chips */}
+      <div className="flex flex-wrap gap-2.5 justify-center max-w-md">
         <button
           onClick={() => sendMessage({ text: "👋 Say Hello" })}
-          className="px-4 py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-cyan-300 bg-slate-900/80 border border-cyan-500/30 rounded-full hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-white hover:-translate-y-0.5 transition-all duration-200 cursor-pointer shadow-sm"
         >
-          👋 Say Hello
+          <HandMetalIcon className="size-3.5 text-cyan-400" />
+          <span>👋 Say Hello</span>
         </button>
+
         <button
-          onClick={() => sendMessage({ text: "🤝 How are you?" })}
-          className="px-4 py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors cursor-pointer"
+          onClick={() => sendMessage({ text: "🤝 How are you doing?" })}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-cyan-300 bg-slate-900/80 border border-cyan-500/30 rounded-full hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-white hover:-translate-y-0.5 transition-all duration-200 cursor-pointer shadow-sm"
         >
-          🤝 How are you?
+          <SmileIcon className="size-3.5 text-teal-400" />
+          <span>🤝 How are you?</span>
         </button>
+
         <button
           onClick={() => sendMessage({ text: "📅 Meet up soon?" })}
-          className="px-4 py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-cyan-300 bg-slate-900/80 border border-cyan-500/30 rounded-full hover:bg-cyan-500/20 hover:border-cyan-400 hover:text-white hover:-translate-y-0.5 transition-all duration-200 cursor-pointer shadow-sm"
         >
-          📅 Meet up soon?
+          <CalendarIcon className="size-3.5 text-indigo-400" />
+          <span>📅 Meet up soon?</span>
         </button>
       </div>
     </div>
