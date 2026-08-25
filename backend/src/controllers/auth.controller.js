@@ -2,24 +2,30 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import User from "../models/user.model.js";
-import mongoose from "mongoose";
 import { sendWelcomeEmail } from "../emails/emailHandlers.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+
+const getCookieOptions = () => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax"
+});
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
-        const user = await User.findById(userId)
-        const accessToken = user.generateAccessToken()
-        const refreshToken = user.generateRefreshToken()
+        const user = await User.findById(userId);
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
 
-        user.refreshToken = refreshToken
-        await user.save({ validateBeforeSave: false })
+        user.refreshToken = refreshToken;
+        await user.save({ validateBeforeSave: false });
 
-        return { accessToken, refreshToken }
+        return { accessToken, refreshToken };
     } catch (error) {
-        throw new ApiError(500, "Something went wrong while generating refresh and access token")
+        throw new ApiError(500, "Something went wrong while generating refresh and access token");
     }
-}
+};
 
 export const signup = asyncHandler(async (req, res) => {
     const { fullName, email, password } = req.body;
@@ -41,32 +47,27 @@ export const signup = asyncHandler(async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user) {
-        throw new ApiError(400, "Email already exists!")
+        throw new ApiError(400, "Email already exists!");
     }
 
     const newUser = await User.create({
         fullName,
         email,
         password
-    })
+    });
 
-    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(newUser._id)
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(newUser._id);
 
     const createdUser = await User.findById(newUser._id).select("-password -refreshToken");
 
     if (!createdUser) {
-        throw new ApiError(400, "Something went wrong while registering the user!")
+        throw new ApiError(400, "Something went wrong while registering the user!");
     }
 
-    const options = { // By default, the cookie is modifiable by the frontend
-        httpOnly: true, // That's why we have to pass the fields httpOnly and secure as true with it so that it is read-only
-        secure: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        sameSite: "strict" // CSRF attacks
-    }
+    const options = getCookieOptions();
 
     try {
-        const clientURL = process.env.CLIENT_URL; 
+        const clientURL = process.env.CLIENT_URL || "http://localhost:5173";
         await sendWelcomeEmail(createdUser.email, createdUser.fullName, clientURL);
     } catch (emailError) {
         // Optional: Log the error but don't crash signup if email failing shouldn't stop registration
@@ -74,13 +75,12 @@ export const signup = asyncHandler(async (req, res) => {
     }
 
     return res
-    .status(201)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(
-        new ApiResponse(201, createdUser, "User created successfully!")
-    )
-
+        .status(201)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(201, createdUser, "User created successfully!")
+        );
 });
 
 export const login = asyncHandler(async (req, res) => {
@@ -106,20 +106,15 @@ export const login = asyncHandler(async (req, res) => {
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
 
-    const options = {
-        httpOnly: true,
-        secure: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        sameSite: "strict"
-    }
+    const options = getCookieOptions();
 
     return res
-    .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(
-        new ApiResponse(200, loggedInUser, "User logged in successfully!")
-    )
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(200, loggedInUser, "User logged in successfully!")
+        );
 });
 
 export const logout = asyncHandler(async (req, res) => {
@@ -127,24 +122,25 @@ export const logout = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined
+            $unset: {
+                refreshToken: 1
             }
         }
     );
 
     const options = {
         httpOnly: true,
-        secure: true
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax"
     };
 
     return res
-    .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
-    .json(
-        new ApiResponse(200, {}, "User logged out successfully!")
-    )
+        .status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(
+            new ApiResponse(200, {}, "User logged out successfully!")
+        );
 });
 
 export const updateProfile = asyncHandler(async (req, res) => {
@@ -160,23 +156,24 @@ export const updateProfile = asyncHandler(async (req, res) => {
         throw new ApiError(400, "User not found");
     }
 
-    // Delete old image
-    if (currentUser?.profilePic) {
+    // Delete old image from Cloudinary if it exists
+    if (currentUser?.profilePic && currentUser.profilePic.includes("cloudinary.com")) {
         try {
             const urlParts = currentUser.profilePic.split("/");
             const uploadIndex = urlParts.indexOf("upload");
-            const publicIdWithExtension = urlParts.slice(uploadIndex + 2).join("/"); // Skips 'upload' and version tag (v123456)
-            const publicId = publicIdWithExtension.split(".")[0];
-
-            await cloudinary.uploader.destroy(publicId);
+            if (uploadIndex !== -1) {
+                const publicIdWithExtension = urlParts.slice(uploadIndex + 2).join("/"); // Skips 'upload' and version tag (v123456)
+                const publicId = publicIdWithExtension.split(".")[0];
+                await deleteFromCloudinary(publicId);
+            }
         } catch (error) {
-            throw new ApiError(400, "Something went wrong while destroying publicId from cloudinary");
+            console.error("Warning: Failed to delete old profile pic from Cloudinary:", error);
         }
     }
 
     const profilePic = await uploadOnCloudinary(profilePicLocalPath);
 
-    if (!profilePic.url) {
+    if (!profilePic?.url) {
         throw new ApiError(400, "Error while uploading profile pic to cloudinary!");
     }
 
@@ -189,16 +186,16 @@ export const updateProfile = asyncHandler(async (req, res) => {
         },
         {
             returnDocument: "after"
-        } 
+        }
     ).select("-password -refreshToken");
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            user,
-            "Profile pic updated successfully!"
-        )
-    )
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                user,
+                "Profile pic updated successfully!"
+            )
+        );
 });

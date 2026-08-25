@@ -5,10 +5,13 @@ import { ApiError } from "../utils/ApiError.js";
 export const socketAuthMiddleware = async (socket, next) => {
     try {
         // Extract token from http-only cookies
-        const token = socket.handshake.headers.cookie
-            ?.split("; ")
-            .find((row) => row.startsWith("jwt="))
-            ?.split("=")[1];
+        const cookies = socket.handshake.headers.cookie;
+        if (!cookies) {
+            return next(new ApiError(401, "Unauthorized - No Token Provided!"));
+        }
+
+        const tokenMatch = cookies.match(/(?:^|;\s*)accessToken=([^;]+)/);
+        const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
 
         if (!token) {
             return next(new ApiError(401, "Unauthorized - No Token Provided!"));

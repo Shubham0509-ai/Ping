@@ -92,7 +92,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
     const receiverSocketId = getReceiverSocketId(receiverId);
 
     if (receiverSocketId) {
-        io.to(receiverSocketId).emit("message", message);
+        io.to(receiverSocketId).emit("newMessage", message);
     }
 
     return res
