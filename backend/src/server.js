@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3000;
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 app.use(express.json({ limit: "10mb" }));
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(cors({ origin: process.env.CLIENT_URL || true, credentials: true }));
 app.use(cookieParser());
 
 import authRoutes from "./routes/auth.route.js";
