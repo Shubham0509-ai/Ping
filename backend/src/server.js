@@ -5,11 +5,15 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { app, server } from "./lib/socket.js";
 
-const __dirname = path.resolve();
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDist = path.resolve(__dirname, "../../frontend/dist");
 
 const PORT = process.env.PORT || 3000;
 
-dotenv.config({ path: "./.env" });
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 app.use(express.json({ limit: "10mb" }));
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
@@ -24,10 +28,10 @@ app.use("/api/messages", messageRoutes);
 
 // make ready for deployment
 if (process.env.NODE_ENV === "production") {
-    app.use(express.static(path.join(__dirname, "../frontend/dist")));
+    app.use(express.static(frontendDist));
 
-    app.get("*", (req, res) => {
-        res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+    app.get("/{*path}", (req, res) => {
+        res.sendFile(path.join(frontendDist, "index.html"));
     });
 }
 
